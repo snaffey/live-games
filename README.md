@@ -32,7 +32,7 @@ LiveGames is a modern web application that provides real-time football match inf
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/live-games.git
+git clone https://github.com/snaffey/live-games.git
 cd live-games
 ```
 
