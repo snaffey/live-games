@@ -1,20 +1,24 @@
 # LiveGames - Real-time Football Match Tracker
 
 ![LiveGames](https://img.shields.io/badge/LiveGames-1.0-brightgreen)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8)
 
-LiveGames is a modern web application that provides real-time football match information, statistics, and timelines. Built with Next.js and Tailwind CSS, it offers a responsive and intuitive interface for tracking live football matches across various leagues.
+LiveGames is a modern web application that provides real-time football match information, statistics, and timelines. Built with Next.js 15 and Tailwind CSS 4, it offers a responsive and intuitive interface for tracking live football matches across various leagues and competitions worldwide.
 
 ## Features
 
-- **Live Match Tracking**: Real-time updates of ongoing football matches with adaptive refresh rates
-- **Match Details**: Comprehensive match information including scores, team lineups, and match status
-- **Interactive Timeline**: Visual representation of key match events (goals, cards, substitutions)
-- **Detailed Statistics**: In-depth match statistics with visual comparisons between teams
-- **User Authentication**: Secure login and registration system powered by Supabase
-- **Favorites System**: Ability to save and track favorite matches
-- **Smart Caching**: Optimized API usage with intelligent caching strategies
-- **Responsive Design**: Optimized for both desktop and mobile viewing
-- **Dark Mode Support**: Toggle between light and dark themes for comfortable viewing
+- **Live Match Tracking**: Real-time updates of ongoing football matches with adaptive refresh rates based on match status
+- **Match Details**: Comprehensive match information including scores, team lineups, match status, and venue details
+- **Interactive Timeline**: Visual representation of key match events (goals, cards, substitutions) with timestamps and player information
+- **Detailed Statistics**: In-depth match statistics with visual comparisons between teams using interactive bar charts
+- **User Authentication**: Secure login and registration system powered by Supabase with email verification
+- **Favorites System**: Ability to save and track favorite matches with persistent storage in Supabase
+- **Smart Caching**: Optimized API usage with intelligent caching strategies and rate limiting protection
+- **Responsive Design**: Fully responsive interface optimized for both desktop and mobile viewing experiences
+- **Dark Mode Support**: Seamless toggle between light and dark themes with system preference detection
+- **Performance Optimization**: Efficient data loading with incremental static regeneration and client-side caching
 
 ## Tech Stack
 
@@ -49,12 +53,18 @@ cd live-games
 npm install
 # or
 yarn install
+# or
+pnpm install
 ```
 
 3. Create a `.env.local` file in the root directory with your API keys:
 
 ```
-NEXT_PUBLIC_API_KEY=your_rapidapi_key_here
+# RapidAPI Configuration
+NEXT_PUBLIC_RAPIDAPI_KEY=your_rapidapi_key_here
+NEXT_PUBLIC_RAPIDAPI_HOST=api-football-v1.p.rapidapi.com
+
+# Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
@@ -67,9 +77,18 @@ Run the development server:
 npm run dev
 # or
 yarn dev
+# or
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+For production builds:
+
+```bash
+npm run build
+npm start
+```
 
 ## API Configuration
 
@@ -77,8 +96,16 @@ This project uses the API-Football service through RapidAPI. To get your API key
 
 1. Sign up for a [RapidAPI](https://rapidapi.com/) account
 2. Subscribe to the [API-Football](https://rapidapi.com/api-sports/api/api-football/) API
-3. Copy your API key from the RapidAPI dashboard
-4. Add it to your `.env.local` file as shown in the installation section
+3. Copy your API key and host from the RapidAPI dashboard
+4. Add them to your `.env.local` file as shown in the installation section
+
+### API Rate Limits
+
+The free tier of API-Football has the following limitations:
+- 100 requests per day
+- 10 requests per minute
+
+The application implements rate limiting and caching to optimize API usage and prevent exceeding these limits.
 
 ## Supabase Configuration
 
@@ -86,12 +113,28 @@ For authentication and favorites functionality, you'll need to set up Supabase:
 
 1. Create a [Supabase](https://supabase.com/) account and project
 2. Set up authentication with email/password provider
+   - Enable email confirmation in the Authentication settings
+   - Configure redirect URLs for your local and production environments
 3. Create a `favorite_matches` table with the following schema:
    - `id`: uuid (primary key)
    - `user_id`: uuid (foreign key to auth.users)
    - `match_id`: text
-   - `created_at`: timestamp with time zone
-4. Copy your Supabase URL and anon key to your `.env.local` file
+   - `created_at`: timestamp with time zone (default: now())
+   - `league_id`: text
+   - `home_team`: text
+   - `away_team`: text
+4. Set up Row Level Security (RLS) policies for the `favorite_matches` table:
+   ```sql
+   CREATE POLICY "Users can view their own favorites" ON favorite_matches
+     FOR SELECT USING (auth.uid() = user_id);
+   
+   CREATE POLICY "Users can insert their own favorites" ON favorite_matches
+     FOR INSERT WITH CHECK (auth.uid() = user_id);
+   
+   CREATE POLICY "Users can delete their own favorites" ON favorite_matches
+     FOR DELETE USING (auth.uid() = user_id);
+   ```
+5. Copy your Supabase URL and anon key to your `.env.local` file
 
 ## Project Structure
 
@@ -142,8 +185,13 @@ For authentication and favorites functionality, you'll need to set up Supabase:
   - Match details: 2 minutes
   - Scheduled matches: 5 minutes
   - Finished matches: 30 minutes
-- Memory and localStorage caching for optimal performance
+- Multi-level caching implementation:
+  - Memory cache for fastest access during session
+  - localStorage persistence for returning users
+  - Stale-while-revalidate pattern for optimal UX
 - Debounce mechanism to prevent API rate limiting
+- Cache invalidation strategies for data consistency
+- Prefetching of likely-to-be-accessed data
 
 ## Contributing
 
@@ -155,14 +203,35 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### Development Guidelines
+
+- Follow the existing code style and conventions
+- Write tests for new features when applicable
+- Update documentation to reflect your changes
+- Ensure your code passes all existing tests
+- Consider performance implications, especially for API calls
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
-- [API-Football](https://www.api-football.com/) for providing the football data API
-- [Next.js](https://nextjs.org/) team for the amazing framework
-- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
-- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
-- [Supabase](https://supabase.com/) for the authentication and database services
+- [API-Football](https://www.api-football.com/) for providing the comprehensive football data API
+- [Next.js](https://nextjs.org/) team for the amazing framework and continuous improvements
+- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework that enables rapid UI development
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful and accessible UI components
+- [Supabase](https://supabase.com/) for the robust authentication and database services
+- [Radix UI](https://www.radix-ui.com/) for the headless UI primitives
+- [Vercel](https://vercel.com/) for the seamless deployment platform
+
+## Deployment
+
+This application is optimized for deployment on Vercel:
+
+1. Push your code to a GitHub repository
+2. Import the project in your Vercel dashboard
+3. Configure the environment variables
+4. Deploy with a single click
+
+Alternatively, you can deploy to any platform that supports Next.js applications.

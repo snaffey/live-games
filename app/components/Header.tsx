@@ -38,39 +38,30 @@ export default function Header() {
               </NavigationMenuItem>
               
               {user && (
-                <NavigationMenuItem>
-                  <Link href="/favorites" legacyBehavior passHref>
-                    <NavigationMenuLink className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
-                    )}>
-                      Favorites
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
+                <>
+                  <NavigationMenuItem>
+                    <Link href="/favorites" legacyBehavior passHref>
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
+                      )}>
+                        Favorites
+                      </NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Link href="/profile" legacyBehavior passHref>
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
+                      )}>
+                        Profile
+                      </NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuItem>
+                </>
               )}
               
-              <NavigationMenuItem>
-                <Link href="/football" legacyBehavior passHref>
-                  <NavigationMenuLink className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
-                  )}>
-                    Football
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              
-              <NavigationMenuItem>
-                <Link href="/basketball" legacyBehavior passHref>
-                  <NavigationMenuLink className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
-                  )}>
-                    Basketball
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
           

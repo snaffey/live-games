@@ -77,12 +77,12 @@ const MatchCard: FC<MatchCardProps> = ({
       </CardHeader>
       <CardContent className="p-4 space-y-4">
         <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50/50 dark:bg-gray-700/30 backdrop-blur-sm transition-all duration-300 group-hover:bg-gray-100/50 dark:group-hover:bg-gray-700/50">
-          <div className="font-semibold text-gray-800 dark:text-white">{homeTeam}</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{homeScore}</div>
+          <div className="font-semibold text-gray-800 dark:text-white truncate mr-6 flex-1 max-w-[70%]">{homeTeam}</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white shrink-0 min-w-[40px] text-right">{homeScore}</div>
         </div>
         <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50/50 dark:bg-gray-700/30 backdrop-blur-sm transition-all duration-300 group-hover:bg-gray-100/50 dark:group-hover:bg-gray-700/50">
-          <div className="font-semibold text-gray-800 dark:text-white">{awayTeam}</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{awayScore}</div>
+          <div className="font-semibold text-gray-800 dark:text-white truncate mr-6 flex-1 max-w-[70%]">{awayTeam}</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white shrink-0 min-w-[40px] text-right">{awayScore}</div>
         </div>
       </CardContent>
     </Card>
