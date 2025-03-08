@@ -1,5 +1,6 @@
 import { Match } from '../types/match';
 import { MatchDetails } from '../types/matchStats';
+import { getCacheData, setCacheData, CACHE_EXPIRATION, generateCacheKey } from '../../lib/cache';
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 const API_BASE_URL = 'https://api-football-v1.p.rapidapi.com/v3';
@@ -10,6 +11,15 @@ interface ApiResponse {
 }
 
 export async function fetchMatchDetails(matchId: string): Promise<MatchDetails | null> {
+  // Try to get from cache first
+  const cacheKey = generateCacheKey('match-details', { matchId });
+  const cachedData = getCacheData<MatchDetails>(cacheKey);
+  
+  if (cachedData) {
+    console.log(`Using cached data for match ${matchId}`);
+    return cachedData;
+  }
+  
   try {
     // Fetch basic match details
     const matchResponse = await fetch(`${API_BASE_URL}/fixtures?id=${matchId}`, {
@@ -53,15 +63,38 @@ export async function fetchMatchDetails(matchId: string): Promise<MatchDetails |
     const parseStatValue = (value: string | number | null | undefined): number => {
       if (value === null || value === undefined) return 0;
       if (typeof value === 'number') return value;
+      
       // Remove '%' if present and convert to number
       const stringValue = String(value).replace('%', '');
-      return parseInt(stringValue) || 0;
+      
+      // Try parsing as float first for decimal values
+      const parsedValue = parseFloat(stringValue);
+      
+      // Check if we got a valid number
+      if (!isNaN(parsedValue)) {
+        return parsedValue;
+      }
+      
+      // If we couldn't parse it as a number, return 0
+      console.log(`Failed to parse stat value: ${value}`);
+      return 0;
     };
 
     // Helper function to find and parse statistic
     const getStatValue = (teamStats: any[] | undefined, type: string): number => {
-      if (!teamStats || !Array.isArray(teamStats)) return 0;
+      if (!teamStats || !Array.isArray(teamStats)) {
+        console.log(`No stats array found for type: ${type}`);
+        return 0;
+      }
+      
       const stat = teamStats.find((s: any) => s.type === type);
+      
+      if (!stat) {
+        console.log(`Stat type not found: ${type}`);
+        return 0;
+      }
+      
+      console.log(`Found stat ${type}:`, stat.value);
       return parseStatValue(stat?.value);
     };
     
@@ -80,7 +113,7 @@ export async function fetchMatchDetails(matchId: string): Promise<MatchDetails |
     }
     
     // Transform API response to match our app's data structure
-    return {
+    const matchDetails: MatchDetails = {
       id: match.fixture.id.toString(),
       homeTeam: match.teams.home.name,
       awayTeam: match.teams.away.name,
@@ -130,6 +163,17 @@ export async function fetchMatchDetails(matchId: string): Promise<MatchDetails |
         }
       }
     };
+    
+    // Cache the data with appropriate expiration time based on match status
+    const expirationTime = match.fixture.status.short === 'FT' || match.fixture.status.short === 'AET' || match.fixture.status.short === 'PEN'
+      ? CACHE_EXPIRATION.FINISHED_MATCHES
+      : match.fixture.status.short === '1H' || match.fixture.status.short === '2H' || match.fixture.status.short === 'HT'
+        ? CACHE_EXPIRATION.LIVE_MATCHES
+        : CACHE_EXPIRATION.SCHEDULED_MATCHES;
+    
+    setCacheData(cacheKey, matchDetails, { expirationTime });
+    
+    return matchDetails;
   } catch (error) {
     console.error('Error fetching match details:', error);
     return null;
@@ -137,6 +181,15 @@ export async function fetchMatchDetails(matchId: string): Promise<MatchDetails |
 }
 
 export async function fetchLiveMatches(): Promise<ApiResponse> {
+  // Try to get from cache first
+  const cacheKey = 'live-matches';
+  const cachedData = getCacheData<ApiResponse>(cacheKey);
+  
+  if (cachedData) {
+    console.log('Using cached live matches data');
+    return cachedData;
+  }
+  
   try {
     const response = await fetch(`${API_BASE_URL}/fixtures?live=all`, {
       headers: {
@@ -167,7 +220,12 @@ export async function fetchLiveMatches(): Promise<ApiResponse> {
       league: match.league.name
     }));
 
-    return { matches };
+    const result = { matches };
+    
+    // Cache the live matches data with short expiration time
+    setCacheData(cacheKey, result, { expirationTime: CACHE_EXPIRATION.LIVE_MATCHES });
+    
+    return result;
   } catch (error) {
     console.error('Error fetching live matches:', error);
     return { matches: [], error: 'Failed to load live matches' };
