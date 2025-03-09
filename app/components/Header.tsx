@@ -1,97 +1,82 @@
-"use client";
+'use client';
 
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import ThemeToggle from "./ThemeToggle";
-import { useAuth } from "../context/AuthContext";
-import { signOut } from "../../lib/supabase";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
+import ThemeToggle from './ThemeToggle';
+import NotificationSystem from './NotificationSystem';
 
 export default function Header() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    await signOut();
-    window.location.reload();
-  };
+  const { user } = useAuth();
 
   return (
-    <header className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-5 px-6 shadow-xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-gray-800/50">
-      <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
-        <Link href="/" className="text-3xl font-bold font-[family-name:var(--font-geist-sans)] bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-gray-300 tracking-tight">LiveGames</Link>
-        
-        <div className="flex items-center gap-4">
-          <NavigationMenu className="w-full sm:w-auto">
-            <NavigationMenuList className="flex justify-center sm:justify-end space-x-4">
+    <header className="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm">
+      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="flex items-center">
+          <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white mr-6">LiveGames</Link>
+          
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList>
               <NavigationMenuItem>
                 <Link href="/" legacyBehavior passHref>
-                  <NavigationMenuLink className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
-                  )}>
-                    Live Scores
+                  <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50">
+                    Live Matches
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
-              
+              <NavigationMenuItem>
+                <Link href="/standings" legacyBehavior passHref>
+                  <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50">
+                    Standings
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/players" legacyBehavior passHref>
+                  <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50">
+                    Players
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/predictions" legacyBehavior passHref>
+                  <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50">
+                    Predictions
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
               {user && (
-                <>
-                  <NavigationMenuItem>
-                    <Link href="/favorites" legacyBehavior passHref>
-                      <NavigationMenuLink className={cn(
-                        navigationMenuTriggerStyle(),
-                        "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
-                      )}>
-                        Favorites
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/profile" legacyBehavior passHref>
-                      <NavigationMenuLink className={cn(
-                        navigationMenuTriggerStyle(),
-                        "bg-transparent hover:bg-gray-800 hover:text-blue-300 transition-colors duration-300"
-                      )}>
-                        Profile
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                </>
+                <NavigationMenuItem>
+                  <Link href="/favorites" legacyBehavior passHref>
+                    <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50 dark:focus:bg-gray-800 dark:focus:text-gray-50">
+                      Favorites
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
               )}
-              
             </NavigationMenuList>
           </NavigationMenu>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          {user && <NotificationSystem />}
           
-          <div className="flex items-center gap-3">
-            {!loading && (
-              user ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-300 hidden md:inline">{user.email}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSignOut}
-                    className="hover:bg-gray-800 hover:text-red-300"
-                  >
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => router.push('/auth')}
-                  className="hover:bg-gray-800 hover:text-blue-300"
-                >
-                  Sign In
-                </Button>
-              )
-            )}
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
+          
+          {user ? (
+            <Link href="/profile">
+              <Button variant="outline" size="sm">
+                Profile
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/auth">
+              <Button variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

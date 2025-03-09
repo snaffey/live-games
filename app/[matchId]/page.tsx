@@ -6,6 +6,7 @@ import { fetchMatchDetails } from '../services/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '../components/Header';
+import SocialShareButtons from '../components/SocialShareButtons';
 import { debounce } from '../../lib/cache';
 
 export default function MatchStatistics({ params }: { params: Promise<{ matchId: string }> }) {
@@ -106,313 +107,421 @@ export default function MatchStatistics({ params }: { params: Promise<{ matchId:
                 )}
               </div>
             </div>
-            <div className="flex justify-center">
-              <span className={`
-                px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1.5 mt-2
+            
+            <div className="flex justify-between items-center">
+              <div className={`px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1.5
                 ${match.status === 'live' ? 'bg-green-100 text-green-600 dark:bg-green-900/70 dark:text-green-300' : ''}
                 ${match.status === 'finished' ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : ''}
                 ${match.status === 'scheduled' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/70 dark:text-blue-300' : ''}
               `}>
                 {match.status === 'live' && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
                 {match.status === 'live' ? 'LIVE' : match.status === 'finished' ? 'Finished' : match.time}
-              </span>
+              </div>
+              
+              <SocialShareButtons 
+                matchId={matchId}
+                homeTeam={match.homeTeam}
+                awayTeam={match.awayTeam}
+                homeScore={match.homeScore}
+                awayScore={match.awayScore}
+                league={match.league}
+                status={match.status}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Match Content with Tabs */}
+        {/* Match Content */}
         <Tabs defaultValue="statistics" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="statistics">Statistics</TabsTrigger>
-            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="statistics" className="animate-fadeIn">
+          
+          <TabsContent value="statistics" className="space-y-4">
+            {/* Statistics content */}
             <Card>
               <CardHeader>
                 <CardTitle>Match Statistics</CardTitle>
+                <CardDescription className="flex justify-between text-sm pt-2">
+                  <span className="font-medium text-blue-600 dark:text-blue-400">{match.homeTeam}</span>
+                  <span className="font-medium text-red-600 dark:text-red-400">{match.awayTeam}</span>
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Function to check if all statistics are zero */}
-                {(() => {
-                  const stats = match.statistics;
-                  const allStatsZero = 
-                    stats.possession.home === 0 && stats.possession.away === 0 &&
-                    stats.shots.home === 0 && stats.shots.away === 0 &&
-                    stats.shotsOnTarget.home === 0 && stats.shotsOnTarget.away === 0 &&
-                    stats.corners.home === 0 && stats.corners.away === 0 &&
-                    stats.fouls.home === 0 && stats.fouls.away === 0 &&
-                    stats.yellowCards.home === 0 && stats.yellowCards.away === 0 &&
-                    stats.redCards.home === 0 && stats.redCards.away === 0;
-                  
-                  if (allStatsZero) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 dark:text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No Statistics Available</h3>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                          Statistics for this match have not been recorded yet. Check back later for updates.
-                        </p>
+                {/* Team Performance Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold mb-3 text-blue-600 dark:text-blue-400">{match.homeTeam} Summary</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.shots.home}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Total Shots</div>
                       </div>
-                    );
-                  }
-                  
-                  return (
-                    <div className="space-y-6">
-                  {/* Possession */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.possession.home}%</span>
-                      <span className="font-medium">Possession</span>
-                      <span>{match.statistics.possession.away}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div
-                        className="bg-blue-600 h-2.5 rounded-full"
-                        style={{ width: `${match.statistics.possession.home}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Shots */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.shots.home}</span>
-                      <span className="font-medium">Shots</span>
-                      <span>{match.statistics.shots.away}</span>
-                    </div>
-                    <div className="flex w-full">
-                      <div className="flex-1 flex justify-end">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-l-full"
-                          style={{
-                            width: `${(match.statistics.shots.home / (match.statistics.shots.home + match.statistics.shots.away)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.shotsOnTarget.home}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Shots on Target</div>
                       </div>
-                      <div className="flex-1">
-                        <div
-                          className="bg-red-600 h-2.5 rounded-r-full"
-                          style={{
-                            width: `${(match.statistics.shots.away / (match.statistics.shots.home + match.statistics.shots.away)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.possession.home}%</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Possession</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.corners.home}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Corners</div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Shots on Target */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.shotsOnTarget.home}</span>
-                      <span className="font-medium">Shots on Target</span>
-                      <span>{match.statistics.shotsOnTarget.away}</span>
-                    </div>
-                    <div className="flex w-full">
-                      <div className="flex-1 flex justify-end">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-l-full"
-                          style={{
-                            width: `${(match.statistics.shotsOnTarget.home / (match.statistics.shotsOnTarget.home + match.statistics.shotsOnTarget.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
+                    {/* Shooting Efficiency */}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Shooting Accuracy</span>
+                        <span>{match.statistics.shots.home > 0 ? 
+                          Math.round((match.statistics.shotsOnTarget.home / match.statistics.shots.home) * 100) : 0}%</span>
                       </div>
-                      <div className="flex-1">
-                        <div
-                          className="bg-red-600 h-2.5 rounded-r-full"
-                          style={{
-                            width: `${(match.statistics.shotsOnTarget.away / (match.statistics.shotsOnTarget.home + match.statistics.shotsOnTarget.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Corners */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.corners.home}</span>
-                      <span className="font-medium">Corners</span>
-                      <span>{match.statistics.corners.away}</span>
-                    </div>
-                    <div className="flex w-full">
-                      <div className="flex-1 flex justify-end">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-l-full"
-                          style={{
-                            width: `${(match.statistics.corners.home / (match.statistics.corners.home + match.statistics.corners.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                      <div className="flex-1">
-                        <div
-                          className="bg-red-600 h-2.5 rounded-r-full"
-                          style={{
-                            width: `${(match.statistics.corners.away / (match.statistics.corners.home + match.statistics.corners.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fouls */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.fouls.home}</span>
-                      <span className="font-medium">Fouls</span>
-                      <span>{match.statistics.fouls.away}</span>
-                    </div>
-                    <div className="flex w-full">
-                      <div className="flex-1 flex justify-end">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-l-full"
-                          style={{
-                            width: `${(match.statistics.fouls.home / (match.statistics.fouls.home + match.statistics.fouls.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                      <div className="flex-1">
-                        <div
-                          className="bg-red-600 h-2.5 rounded-r-full"
-                          style={{
-                            width: `${(match.statistics.fouls.away / (match.statistics.fouls.home + match.statistics.fouls.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Yellow Cards */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.yellowCards.home}</span>
-                      <span className="font-medium">Yellow Cards</span>
-                      <span>{match.statistics.yellowCards.away}</span>
-                    </div>
-                    <div className="flex w-full">
-                      <div className="flex-1 flex justify-end">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-l-full"
-                          style={{
-                            width: `${(match.statistics.yellowCards.home / (match.statistics.yellowCards.home + match.statistics.yellowCards.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                      <div className="flex-1">
-                        <div
-                          className="bg-red-600 h-2.5 rounded-r-full"
-                          style={{
-                            width: `${(match.statistics.yellowCards.away / (match.statistics.yellowCards.home + match.statistics.yellowCards.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Red Cards */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{match.statistics.redCards.home}</span>
-                      <span className="font-medium">Red Cards</span>
-                      <span>{match.statistics.redCards.away}</span>
-                    </div>
-                    <div className="flex w-full">
-                      <div className="flex-1 flex justify-end">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-l-full"
-                          style={{
-                            width: `${(match.statistics.redCards.home / (match.statistics.redCards.home + match.statistics.redCards.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
-                        ></div>
-                      </div>
-                      <div className="flex-1">
-                        <div
-                          className="bg-red-600 h-2.5 rounded-r-full"
-                          style={{
-                            width: `${(match.statistics.redCards.away / (match.statistics.redCards.home + match.statistics.redCards.away || 1)) * 100}%`,
-                            maxWidth: '100%'
-                          }}
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className="bg-blue-600 h-full" 
+                          style={{ width: `${match.statistics.shots.home > 0 ? 
+                            (match.statistics.shotsOnTarget.home / match.statistics.shots.home) * 100 : 0}%` }}
                         ></div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Other statistics... */}
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold mb-3 text-red-600 dark:text-red-400">{match.awayTeam} Summary</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.shots.away}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Total Shots</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.shotsOnTarget.away}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Shots on Target</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.possession.away}%</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Possession</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{match.statistics.corners.away}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Corners</div>
+                      </div>
+                    </div>
+                    {/* Shooting Efficiency */}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Shooting Accuracy</span>
+                        <span>{match.statistics.shots.away > 0 ? 
+                          Math.round((match.statistics.shotsOnTarget.away / match.statistics.shots.away) * 100) : 0}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className="bg-red-600 h-full" 
+                          style={{ width: `${match.statistics.shots.away > 0 ? 
+                            (match.statistics.shotsOnTarget.away / match.statistics.shots.away) * 100 : 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                  );
-                })()}
+                
+                <h3 className="text-sm font-semibold mb-4 text-gray-700 dark:text-gray-300">Head-to-Head Comparison</h3>
+                
+                {/* Possession */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center">
+                    <div className="w-16 text-right text-sm font-medium text-blue-600 dark:text-blue-400">{match.statistics.possession.home}%</div>
+                    <div className="flex-1 mx-4">
+                      <div className="flex justify-center text-xs font-medium mb-1">Possession</div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div className="flex h-full">
+                          <div 
+                            className="bg-blue-600 h-full" 
+                            style={{ width: `${match.statistics.possession.home}%` }}
+                          ></div>
+                          <div 
+                            className="bg-red-600 h-full" 
+                            style={{ width: `${match.statistics.possession.away}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-16 text-left text-sm font-medium text-red-600 dark:text-red-400">{match.statistics.possession.away}%</div>
+                  </div>
+                </div>
+                
+                {/* Shots */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center">
+                    <div className="w-16 text-right text-sm font-medium text-blue-600 dark:text-blue-400">{match.statistics.shots.home}</div>
+                    <div className="flex-1 mx-4">
+                      <div className="flex justify-center text-xs font-medium mb-1">Total Shots</div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div className="flex h-full">
+                          <div 
+                            className="bg-blue-600 h-full" 
+                            style={{ width: `${(match.statistics.shots.home / (match.statistics.shots.home + match.statistics.shots.away || 1)) * 100}%` }}
+                          ></div>
+                          <div 
+                            className="bg-red-600 h-full" 
+                            style={{ width: `${(match.statistics.shots.away / (match.statistics.shots.home + match.statistics.shots.away || 1)) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-16 text-left text-sm font-medium text-red-600 dark:text-red-400">{match.statistics.shots.away}</div>
+                  </div>
+                </div>
+                
+                {/* Shots on Target */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center">
+                    <div className="w-16 text-right text-sm font-medium text-blue-600 dark:text-blue-400">{match.statistics.shotsOnTarget.home}</div>
+                    <div className="flex-1 mx-4">
+                      <div className="flex justify-center text-xs font-medium mb-1">Shots on Target</div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div className="flex h-full">
+                          <div 
+                            className="bg-blue-600 h-full" 
+                            style={{ width: `${(match.statistics.shotsOnTarget.home / (match.statistics.shotsOnTarget.home + match.statistics.shotsOnTarget.away || 1)) * 100}%` }}
+                          ></div>
+                          <div 
+                            className="bg-red-600 h-full" 
+                            style={{ width: `${(match.statistics.shotsOnTarget.away / (match.statistics.shotsOnTarget.home + match.statistics.shotsOnTarget.away || 1)) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-16 text-left text-sm font-medium text-red-600 dark:text-red-400">{match.statistics.shotsOnTarget.away}</div>
+                  </div>
+                </div>
+                
+                {/* Corners */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center">
+                    <div className="w-16 text-right text-sm font-medium text-blue-600 dark:text-blue-400">{match.statistics.corners.home}</div>
+                    <div className="flex-1 mx-4">
+                      <div className="flex justify-center text-xs font-medium mb-1">Corners</div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div className="flex h-full">
+                          <div 
+                            className="bg-blue-600 h-full" 
+                            style={{ width: `${(match.statistics.corners.home / (match.statistics.corners.home + match.statistics.corners.away || 1)) * 100}%` }}
+                          ></div>
+                          <div 
+                            className="bg-red-600 h-full" 
+                            style={{ width: `${(match.statistics.corners.away / (match.statistics.corners.home + match.statistics.corners.away || 1)) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-16 text-left text-sm font-medium text-red-600 dark:text-red-400">{match.statistics.corners.away}</div>
+                  </div>
+                </div>
+                
+                {/* Fouls */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center">
+                    <div className="w-16 text-right text-sm font-medium text-blue-600 dark:text-blue-400">{match.statistics.fouls.home}</div>
+                    <div className="flex-1 mx-4">
+                      <div className="flex justify-center text-xs font-medium mb-1">Fouls</div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div className="flex h-full">
+                          <div 
+                            className="bg-blue-600 h-full" 
+                            style={{ width: `${(match.statistics.fouls.home / (match.statistics.fouls.home + match.statistics.fouls.away || 1)) * 100}%` }}
+                          ></div>
+                          <div 
+                            className="bg-red-600 h-full" 
+                            style={{ width: `${(match.statistics.fouls.away / (match.statistics.fouls.home + match.statistics.fouls.away || 1)) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-16 text-left text-sm font-medium text-red-600 dark:text-red-400">{match.statistics.fouls.away}</div>
+                  </div>
+                </div>
+                
+                {/* Cards Visualization */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 mb-4">
+                  {/* Yellow Cards */}
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">Yellow Cards</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-end">
+                        {[...Array(match.statistics.yellowCards.home)].map((_, i) => (
+                          <div key={`home-yellow-${i}`} className="w-6 h-9 bg-yellow-400 rounded-sm mx-1 shadow-md"></div>
+                        ))}
+                        {match.statistics.yellowCards.home === 0 && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">None</div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-center px-4">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total</div>
+                        <div className="text-lg font-bold">
+                          {match.statistics.yellowCards.home} - {match.statistics.yellowCards.away}
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        {[...Array(match.statistics.yellowCards.away)].map((_, i) => (
+                          <div key={`away-yellow-${i}`} className="w-6 h-9 bg-yellow-400 rounded-sm mx-1 shadow-md"></div>
+                        ))}
+                        {match.statistics.yellowCards.away === 0 && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">None</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-2 text-xs">
+                      <div className="text-blue-600 dark:text-blue-400">{match.homeTeam}</div>
+                      <div className="text-red-600 dark:text-red-400">{match.awayTeam}</div>
+                    </div>
+                  </div>
+                  
+                  {/* Red Cards */}
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">Red Cards</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-end">
+                        {[...Array(match.statistics.redCards.home)].map((_, i) => (
+                          <div key={`home-red-${i}`} className="w-6 h-9 bg-red-600 rounded-sm mx-1 shadow-md"></div>
+                        ))}
+                        {match.statistics.redCards.home === 0 && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">None</div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-center px-4">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total</div>
+                        <div className="text-lg font-bold">
+                          {match.statistics.redCards.home} - {match.statistics.redCards.away}
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        {[...Array(match.statistics.redCards.away)].map((_, i) => (
+                          <div key={`away-red-${i}`} className="w-6 h-9 bg-red-600 rounded-sm mx-1 shadow-md"></div>
+                        ))}
+                        {match.statistics.redCards.away === 0 && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">None</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-2 text-xs">
+                      <div className="text-blue-600 dark:text-blue-400">{match.homeTeam}</div>
+                      <div className="text-red-600 dark:text-red-400">{match.awayTeam}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Match Key Stats */}
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 mt-8">
+                  <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">Match Key Stats</h3>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Shot Conversion Rate</div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-blue-600 dark:text-blue-400 font-medium">
+                          {match.statistics.shots.home > 0 ? 
+                            Math.round((match.homeScore / match.statistics.shots.home) * 100) : 0}%
+                        </div>
+                        <div className="text-xs">vs</div>
+                        <div className="text-red-600 dark:text-red-400 font-medium">
+                          {match.statistics.shots.away > 0 ? 
+                            Math.round((match.awayScore / match.statistics.shots.away) * 100) : 0}%
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Shots per Goal</div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-blue-600 dark:text-blue-400 font-medium">
+                          {match.homeScore > 0 ? 
+                            (match.statistics.shots.home / match.homeScore).toFixed(1) : '-'}
+                        </div>
+                        <div className="text-xs">vs</div>
+                        <div className="text-red-600 dark:text-red-400 font-medium">
+                          {match.awayScore > 0 ? 
+                            (match.statistics.shots.away / match.awayScore).toFixed(1) : '-'}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fouls per Card</div>
+                      <div className="grid grid-cols-3 items-center">
+                        <div className="text-blue-600 dark:text-blue-400 font-medium">
+                          {(match.statistics.yellowCards.home + match.statistics.redCards.home) > 0 ? 
+                            (match.statistics.fouls.home / (match.statistics.yellowCards.home + match.statistics.redCards.home)).toFixed(1) : '-'}
+                        </div>
+                        <div className="text-xs">vs</div>
+                        <div className="text-red-600 dark:text-red-400 font-medium">
+                          {(match.statistics.yellowCards.away + match.statistics.redCards.away) > 0 ? 
+                            (match.statistics.fouls.away / (match.statistics.yellowCards.away + match.statistics.redCards.away)).toFixed(1) : '-'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-
-          <TabsContent value="events" className="animate-fadeIn">
+          
+          <TabsContent value="timeline" className="space-y-4">
+            {/* Timeline content */}
             <Card>
               <CardHeader>
-                <CardTitle>Match Events</CardTitle>
+                <CardTitle>Match Timeline</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {match.events && match.events.length > 0 ? (
-                    match.events.map((event, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-start p-3 rounded-lg ${event.team === 'home' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}
-                      >
-                        <div className="flex-shrink-0 w-12 text-center">
-                          <span className="font-bold">{event.minute}'</span>
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <div className="flex items-center">
-                            <span className={`mr-2 ${event.team === 'home' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {event.type === 'goal' && '⚽'}
-                              {event.type === 'yellow_card' && '🟨'}
-                              {event.type === 'red_card' && '🟥'}
-                              {event.type === 'substitution' && '🔄'}
-                            </span>
-                            {event.type !== 'substitution' && <span className="font-medium">{event.player}</span>}
+                {!match.timeline || match.timeline.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No events to display yet
+                  </div>
+                ) : (
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                    
+                    {/* Timeline events */}
+                    <div className="space-y-6">
+                      {match.timeline.map((event, index) => (
+                        <div key={index} className="relative pl-12">
+                          {/* Event time marker */}
+                          <div className="absolute left-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs font-medium">
+                            {event.minute}'
                           </div>
-                          {event.type === 'substitution' && event.assistedBy ? (
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              <span className="inline-flex items-center">
-                                <span className="text-green-600 dark:text-green-400 mr-1">↑</span> {event.player}
-                              </span>
-                              <span className="mx-1">•</span>
-                              <span className="inline-flex items-center">
-                                <span className="text-red-600 dark:text-red-400 mr-1">↓</span> {event.assistedBy}
-                              </span>
+                          
+                          {/* Event content */}
+                          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                            <div className="flex items-center space-x-2">
+                              {/* Event icon based on type */}
+                              {event.type === 'goal' && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <path d="m8 12 3 3 5-5"/>
+                                </svg>
+                              )}
+                              {event.type === 'yellow_card' && (
+                                <div className="w-3 h-4 bg-yellow-400 rounded-sm"></div>
+                              )}
+                              {event.type === 'red_card' && (
+                                <div className="w-3 h-4 bg-red-500 rounded-sm"></div>
+                              )}
+                              {event.type === 'substitution' && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                                  <path d="M17 2v20"/>
+                                  <path d="m2 17 5-5-5-5"/>
+                                  <path d="M7 17h10"/>
+                                </svg>
+                              )}
+                              
+                              <span className="font-medium">{event.team}</span>
                             </div>
-                          ) : event.assistedBy && (
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              Assisted by: {event.assistedBy}
-                            </div>
-                          )}
-                          {event.description && (
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              {event.description}
-                            </div>
-                          )}
+                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{event.description}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No events recorded for this match yet.
+                      ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

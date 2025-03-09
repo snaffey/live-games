@@ -132,6 +132,15 @@ export async function fetchMatchDetails(matchId: string): Promise<MatchDetails |
         assistedBy: event.assist?.name,
         description: event.detail
       })) || [],
+      // Ensure timeline is always an array, even if events are undefined
+      timeline: match.events?.map((event: any) => ({
+        minute: event.time.elapsed,
+        type: getEventType(event.type),
+        team: event.team.id === match.teams.home.id ? 'home' : 'away',
+        player: event.player.name,
+        assistedBy: event.assist?.name,
+        description: event.detail
+      })) || [],
       statistics: {
         possession: {
           home: getStatValue(homeStats, 'Ball Possession'),

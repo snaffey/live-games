@@ -51,4 +51,5 @@ export interface MatchDetails {
   awayTeamLogo?: string;
   events: MatchEvent[];
   statistics: MatchStatistics;
+  timeline: MatchEvent[];
 }
