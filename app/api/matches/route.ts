@@ -9,14 +9,8 @@ const limiter = rateLimit({
   limit: 10, // Max number of requests per token per interval
 });
 
-export async function GET(request: NextRequest) {
-  // Get client IP from headers
-  const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
-  
+export async function GET() {
   try {
-    // Apply rate limiting
-    await limiter.check(ip);
-    
     // Fetch matches data
     const { matches, error } = await fetchLiveMatches();
     
@@ -29,13 +23,6 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({ matches });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('rate limit')) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      );
-    }
-    
     console.error('Error in matches API:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -43,10 +30,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-// Add CORS and cache headers
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {

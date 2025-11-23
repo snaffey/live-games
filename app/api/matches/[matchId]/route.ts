@@ -76,6 +76,10 @@ const mockMatchDetails: MatchDetails = {
   }
 };
 
+export async function generateStaticParams() {
+  return [{ matchId: '1' }];
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ matchId: string }> }
