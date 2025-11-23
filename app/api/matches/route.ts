@@ -1,13 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { fetchLiveMatches } from '@/app/services/api';
-import { rateLimit } from '@/lib/rate-limit';
 
-// Create a limiter that allows 10 requests per minute
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500, // Max number of unique tokens per interval
-  limit: 10, // Max number of requests per token per interval
-});
+export const dynamic = 'force-static';
 
 export async function GET() {
   try {
@@ -31,7 +25,7 @@ export async function GET() {
   }
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(request: Request) {
   return new NextResponse(null, {
     status: 204,
     headers: {
