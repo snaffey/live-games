@@ -1,5 +1,37 @@
 import { NextResponse } from 'next/server';
-import type { MatchDetails } from '@/app/types/matchStats';
+import type { MatchDetails, MatchEvent } from '@/app/types/matchStats';
+
+const mockEvents: MatchEvent[] = [
+  {
+    minute: 15,
+    type: 'goal',
+    team: 'home',
+    player: 'Marcus Rashford',
+    assistedBy: 'Bruno Fernandes',
+    description: 'Beautiful through ball from Fernandes'
+  },
+  {
+    minute: 35,
+    type: 'yellow_card',
+    team: 'away',
+    player: 'Virgil van Dijk',
+    description: 'Tactical foul'
+  },
+  {
+    minute: 55,
+    type: 'goal',
+    team: 'away',
+    player: 'Mohamed Salah',
+    description: 'Counter attack goal'
+  },
+  {
+    minute: 78,
+    type: 'goal',
+    team: 'home',
+    player: 'Bruno Fernandes',
+    description: 'Penalty kick'
+  }
+];
 
 // Mock data for demonstration
 const mockMatchDetails: MatchDetails = {
@@ -10,37 +42,8 @@ const mockMatchDetails: MatchDetails = {
   awayScore: 1,
   status: 'finished',
   league: 'Premier League',
-  events: [
-    {
-      minute: 15,
-      type: 'goal',
-      team: 'home',
-      player: 'Marcus Rashford',
-      assistedBy: 'Bruno Fernandes',
-      description: 'Beautiful through ball from Fernandes'
-    },
-    {
-      minute: 35,
-      type: 'yellow_card',
-      team: 'away',
-      player: 'Virgil van Dijk',
-      description: 'Tactical foul'
-    },
-    {
-      minute: 55,
-      type: 'goal',
-      team: 'away',
-      player: 'Mohamed Salah',
-      description: 'Counter attack goal'
-    },
-    {
-      minute: 78,
-      type: 'goal',
-      team: 'home',
-      player: 'Bruno Fernandes',
-      description: 'Penalty kick'
-    }
-  ],
+  events: mockEvents,
+  timeline: mockEvents,
   statistics: {
     possession: {
       home: 55,
