@@ -75,12 +75,13 @@ const mockMatchDetails: MatchDetails = {
 
 export async function GET(
   request: Request,
-  { params }: { params: { matchId: string } }
+  { params }: { params: Promise<{ matchId: string }> }
 ) {
   try {
+    const { matchId } = await params;
     // In a real application, you would fetch the match details from a database
     // For now, we'll return mock data
-    if (params.matchId) {
+    if (matchId) {
       // Simulate a delay to mimic a real API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
